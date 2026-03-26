@@ -76,12 +76,11 @@ POST /createUser
 
 3번을 본다면 지금까지 본 API들과는 다르게 확연히 URL이 자원보다 행위를 드러내는 특성을 가지는데 이는 HTTP 메서드가 의미 전달의 역할보다 단순 함수 호출 수단처럼 쓰였기 때문이다.
 
-출처:
-https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview
+[https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overvie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview)w
 
 # 2. 멱등성이란?
 
-# 1. 멱등성(Idempotency)이란?
+## 1. 멱등성(Idempotency)이란?
 
 멱등성은 같은 요청을 여러번 반복해서 보내더라도, 서버의 최조 상태가 한번 보냈을 때와 같게 유지되는 성질을 말한다. 이 개념은 HTTP 메서드의 성질을 이해할 때 중요하다.
 
@@ -97,7 +96,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview
 
 예를들어 첫 번째 DELETE는 성공하여 `200 OK` or `204 No content`를 반환할 것이다.두 번쨰 DELETE는 이미 대상이 없으므로 [`404 Not Found`](https://www.youtube.com/watch?v=zhHB4dZTChw)를 반환할 수도 있다. 이때 응답 코드는 달라질 수 있지만 최종 상태는 둘 다 "해당 리소스가 없음"으로 같게 되기 때문에 멱등성의 개념에 만족한다. 이점 때문에 멱등성은 **반복 요청에 안전한가**를 이해하는데 중요하다.!
 
-## 3. 왜 배움?
+## 3. 왜 배움???
 
 사실 이런 멱등성이라는 특성이 어디에 쓰이게 되는지 잘 와닿지 않는다. 단순히 HTTP 메서드의 성질을 외우기 위한 개념이 아니다.
 
@@ -116,6 +115,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview
 멱등성 키는 같은 요청의 재시도인지, 아니면 새로운 요청인지 구분하기 위해 클라이언트가 HTTP 요청 헤더 `Idempotency-Key`에 담아서 함께 보내는 식별자이다. 이는 위의 POST나 PATCH 같은 태생이 비멱등 메서드인 애들을 네트워크등의 장애에 더 강하게 만들기 위한 수단으로 사용된다.
 
 예를들어 결제 생성처럼 중복되면 안되는 요청에서 많이 사용된다.
+
 ```sql
 POST /payments
 Idempotency-Key: 8f4c2d1e-7b8a-4f49-a2c1-91f3c7d2b111
@@ -126,23 +126,58 @@ Content-Type: application/json
   "amount": 15000
 }
 ```
+
 위의 요청을 2번 보내면 결제건이 두개 생길 수 있다. 그러넫 클라이언트가 `Idempotency-Key`를 붙여서 재시도한다면 서버는 **이미 처리한 요청**으로 간주하여 새 결제건을 만들지 않고 이전 처리 결과를 돌려주거나 중복 처리를 막는다. 따라서 실무에서 post나 patch도 비멱동 요청으로 재시도 가능하게 만드는 도구라고 생각하면 좋다.
 
 이때 멱등성 키는 UUID 같은 고유 값을 권장한다. 또한 **같은 키를 다른 요청 내용에 재사용하면 안 된다**. Stripe는 같은 키를 다른 엔드포인트나 다른 파라미터 조합에 재사용하면 `idempotency_error`가 날 수 있다고 설명한다.
 
+## 5. 멱등성 보장 방식은 문제별로 다르다
+
+### 1) 요청 중복 실행 방지: Idempotency-Key
+
+- 같은 요청의 재시도 식별
+- POST/결제/주문/예약에 적합
+
+### 2) 동시 수정 충돌 방지: Optimistic Concurrency Control
+
+- ETag / If-Match / version
+- lost update 방지
+- 수정 API에 적합
+
+### 3) 최종 상태 보호: DB Constraint / Transaction
+
+- UNIQUE, FK, transaction
+- 무결성 보장
+- 마지막 안전장치
+
+멱등성 키와 낙관적 동시성 제어는 비슷해 보이지만 해결하는 문제가 다르다. 멱등성 키는 같은 요청의 중복 실행을 막기 위한 장치이고, 낙관적 동시성 제어는 서로 다른 요청이 동일 자원을 동시에 수정할 때 발생하는 충돌을 방지하기 위한 장치이다. HTTP에서는 `ETag`와 `If-Match` 같은 조건부 요청을 이용해 낙관적 동시성 제어를 구현할 수 있다.
+
 출처:
+
 https://developer.mozilla.org/ko/docs/Glossary/Idempotent
+
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods
+
 https://httpwg.org/specs/rfc9110.html#idempotent.methods
+
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Idempotency-Key
-
-# HTTP 메서드 종류
-
 # HTTP 메서드 종류
 
 HTTP 메서드는 **클라이언트가 특정 리소스에 대해 어떤 동작을 원하고 있는지 나타내는 표준화된 요청 방식**이다. MDN은 HTTP request methods를 “요청의 목적과 성공 시 기대되는 의미를 나타내는 것”이라고 설명한다.
 
-가장 자주 보는 메서드는 아래와 같다.
+- 주요 메소드
+    - GET :리소스 조회
+    - POST: 요청 데이터 처리, 주로 등록에 사용
+    - PUT : 리소스를 대체(덮어쓰기), 해당 리소스가 없으면 생성
+    - PATCH : 리소스 부분 변경 (PUT이 전체 변경, PATCH는 일부 변경)
+    - DELETE : 리소스 삭제
+- 기타 메소드
+    - HEAD : GET과 동일하지만 메시지 부분(body 부분)을 제외하고, 상태 줄과 헤더만 반환
+    - OPTIONS : 대상 리소스에 대한 통신 가능 옵션(메서드)을 설명(주로 CORS에서 사용)
+    - CONNECT : 대상 자원으로 식별되는 서버에 대한 터널을 설정
+    - TRACE : 대상 리소스에 대한 경로를 따라 메시지 루프백 테스트를 수행
+
+![](https://raw.githubusercontent.com/chazy-d/md-images/main/uploads/20260326055432498.png)
 
 ## GET
 
