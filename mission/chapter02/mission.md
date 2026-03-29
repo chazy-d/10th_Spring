@@ -1,3 +1,9 @@
+# 0. 피어 리뷰
+
+![](https://raw.githubusercontent.com/chazy-d/md-images/main/uploads/20260326124544132.png)
+
+멱등성에서 각 메서드 종류를 나누어서 설명하고, DELETE에서 응답은 달라도 최종 상태는 같다는 점을 통해 이해를 하는데 많은 도움이 되었다.
+
 # 1. 홈 화면 조회
 
 ## URL: GET /api/home
@@ -37,6 +43,10 @@
 | regionId | 현재 선택한 지역 | number | O | 존재하는 지역 ID | 1 |
 | cursor | 다음 조회 시작 기준값 | number | X | 첫 조회시 생략 가능함 | 20 |
 | size | 한번에 조회할 미션 개수 | number | O | 1 이상 | 5 |
+
++++
+
+cursor에 missionId에 대한 값이라는 것에 대한 설명이 추가되는 것이 더 이해하는데 쉬울 것 같음!
 
 **Path Variable**
 
@@ -247,6 +257,11 @@ Request Body
 # 3. 미션 성공 누르기
 
 ## URL: PATH /api/missions/{userMissionId}/success
+
++++ 
+
+URL에서 missions라고 하기보다는 사용자의 특정 미션에 접근하는 느낌이 바로 날 수 있도록 user-missions등으로 변경하는것이 좋아보임.
+
 
 ## 설명: 사용자가 특정 미션 수행 기록에 대해 성공 요청을 보낸다.
 
